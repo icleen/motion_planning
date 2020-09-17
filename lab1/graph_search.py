@@ -235,7 +235,7 @@ class PriorityQ:
         '''
         Test if x is in the queue
         '''
-        return x in self.s
+        return x.state in self.s
 
     def push(self, x, cost):
         '''
@@ -354,9 +354,9 @@ def bfs(init_state, f, is_goal, actions):
             if is_goal(n_i.state):
                 return (backpath(n_i), visited)
             else:
-                for a in actions:
-                    s_prime = f(n_i.state, a)
-                    n_prime = SearchNode(s_prime, actions, n_i, a)
+                for act in actions:
+                    s_prime = f(n_i.state, act)
+                    n_prime = SearchNode(s_prime, actions, n_i, act)
                     frontier.append(n_prime)
 
     return None
@@ -369,14 +369,16 @@ def uniform_cost_search(init_state, f, is_goal, actions):
     while len(frontier) > 0:
         # Pop last element
         n_i = frontier.pop()
+        # print(n_i)
+        # print(frontier)
         if n_i.state not in visited:
             visited.append(n_i.state)
             if is_goal(n_i.state):
                 return (backpath(n_i), visited)
             else:
-                for a in actions:
-                    s_prime = f(n_i.state, a)
-                    n_prime = SearchNode(s_prime, actions, n_i, a, cost=n_i.cost+acost[a])
+                for act in actions:
+                    s_prime = f(n_i.state, act)
+                    n_prime = SearchNode(s_prime, actions, n_i, act, cost=n_i.cost+acost[act])
                     if n_prime not in frontier or \
                       (n_prime in frontier and \
                        n_prime.cost < frontier.get_cost(n_prime)):
@@ -426,6 +428,7 @@ def backpath(node):
     returns - a tuple containing (path, action_path) which are lists respectively of the states
     visited from init to goal (inclusive) and the actions taken to make those transitions.
     '''
+    print('cost:', node.cost)
     path = [node.state]
     action_path = []
     while node.parent is not None:

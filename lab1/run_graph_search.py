@@ -1,23 +1,15 @@
 import graph_search
 import os, sys, argparse
 
-def run_dfs(map_path,actions=graph_search._ACTIONS):
-    g = graph_search.GridMap(map_path)
-    res = graph_search.dfs(g.init_pos, g.transition, g.is_goal, actions)
-    g.display_map(res[0][0],res[1])
-def run_bfs(map_path,actions=graph_search._ACTIONS):
-    g = graph_search.GridMap(map_path)
-    res = graph_search.bfs(g.init_pos, g.transition, g.is_goal, actions)
-    g.display_map(res[0][0],res[1])
-def run_ucs(map_path,actions=graph_search._ACTIONS):
-    g = graph_search.GridMap(map_path)
-    res = graph_search.uniform_cost_search(g.init_pos, g.transition, g.is_goal, actions)
-    g.display_map(res[0][0],res[1])
-def run_astar(map_path, actions=graph_search._ACTIONS, heuristic='euc'):
-    g = graph_search.GridMap(map_path)
+def run_dfs(g,actions=graph_search._ACTIONS):
+    return graph_search.dfs(g.init_pos, g.transition, g.is_goal, actions)
+def run_bfs(g,actions=graph_search._ACTIONS):
+    return graph_search.bfs(g.init_pos, g.transition, g.is_goal, actions)
+def run_ucs(g,actions=graph_search._ACTIONS):
+    return graph_search.uniform_cost_search(g.init_pos, g.transition, g.is_goal, actions)
+def run_astar(g, actions=graph_search._ACTIONS, heuristic='euc'):
     heur = g.euclidean_heuristic if heuristic=='euc' else g.manhatten_heuristic
-    res = graph_search.a_star_search(g.init_pos, g.transition, g.is_goal, actions,heur)
-    g.display_map(res[0][0],res[1])
+    return graph_search.a_star_search(g.init_pos, g.transition, g.is_goal, actions, heur)
 
 
 def main():
@@ -31,27 +23,40 @@ def main():
       help="path to output directory"
     )
     config = parser.parse_args()
+    g = graph_search.GridMap(config.map)
     if config.algorithm == 'dfs':
-        run_dfs(config.map)
+        result = run_dfs(g)
     elif config.algorithm == 'idfs':
-        run_idfs(config.map)
+        result = run_idfs(g)
     elif config.algorithm == 'bfs':
-        run_bfs(config.map)
+        result = run_bfs(g)
     elif config.algorithm == 'ucs':
-        run_ucs(config.map)
+        result = run_ucs(g)
     elif config.algorithm == 'ucs2':
-        run_ucs(config.map, graph_search._ACTIONS_2)
+        result = run_ucs(g, graph_search._ACTIONS_2)
     elif config.algorithm == 'astar':
-        run_astar(config.map)
+        result = run_astar(g)
     elif config.algorithm == 'astar2':
-        run_astar(config.map, heuristic='man')
+        result = run_astar(g, heuristic='man')
     elif config.algorithm == 'astar3':
-        run_astar(config.map, actions=graph_search._ACTIONS_2)
+        result = run_astar(g, actions=graph_search._ACTIONS_2)
     elif config.algorithm == 'graph':
-        run_graph(config.map)
+        result = run_graph(g)
     else:
         print('Unknown algorithm:', config.algorithm)
         return 1
+
+    writefile = 'result_{}_{}.txt'.format(config.algorithm, config.map)
+    path, visited = result
+    path, action_path = path
+    with open(writefile, 'w') as f:
+        f.write(str(path))
+        f.write('\n')
+        f.write(str(action_path))
+        f.write('\n')
+        f.write(str(visited))
+        f.write('\n')
+    g.display_map(path,visited)
 
 
 if __name__ == '__main__':
