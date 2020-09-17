@@ -1,15 +1,19 @@
 import graph_search
 import os, sys, argparse
 
-def run_dfs(g,actions=graph_search._ACTIONS):
-    return graph_search.dfs(g.init_pos, g.transition, g.is_goal, actions)
-def run_bfs(g,actions=graph_search._ACTIONS):
-    return graph_search.bfs(g.init_pos, g.transition, g.is_goal, actions)
-def run_ucs(g,actions=graph_search._ACTIONS):
-    return graph_search.uniform_cost_search(g.init_pos, g.transition, g.is_goal, actions)
-def run_astar(g, actions=graph_search._ACTIONS, heuristic='euc'):
-    heur = g.euclidean_heuristic if heuristic=='euc' else g.manhatten_heuristic
-    return graph_search.a_star_search(g.init_pos, g.transition, g.is_goal, actions, heur)
+def run_dfs(graph,actions=graph_search._ACTIONS):
+    return graph_search.dfs(
+      graph.init_pos, graph.transition, graph.is_goal, actions )
+def run_bfs(graph,actions=graph_search._ACTIONS):
+    return graph_search.bfs(
+      graph.init_pos, graph.transition, graph.is_goal, actions )
+def run_ucs(graph,actions=graph_search._ACTIONS):
+    return graph_search.uniform_cost_search(
+      graph.init_pos, graph.transition, graph.is_goal, actions )
+def run_astar(graph, actions=graph_search._ACTIONS, heuristic='euc'):
+    heur = graph.euclidean_heuristic if heuristic=='euc' else g.manhatten_heuristic
+    return graph_search.a_star_search(
+      graph.init_pos, graph.transition, graph.is_goal, actions, heur )
 
 
 def main():
@@ -23,25 +27,25 @@ def main():
       help="path to output directory"
     )
     config = parser.parse_args()
-    g = graph_search.GridMap(config.map)
+    graph = graph_search.GridMap(config.map)
     if config.algorithm == 'dfs':
-        result = run_dfs(g)
+        result = run_dfs(graph)
     elif config.algorithm == 'idfs':
-        result = run_idfs(g)
+        result = run_idfs(graph)
     elif config.algorithm == 'bfs':
-        result = run_bfs(g)
+        result = run_bfs(graph)
     elif config.algorithm == 'ucs':
-        result = run_ucs(g)
+        result = run_ucs(graph)
     elif config.algorithm == 'ucs2':
-        result = run_ucs(g, graph_search._ACTIONS_2)
+        result = run_ucs(graph, graph_search._ACTIONS_2)
     elif config.algorithm == 'astar':
-        result = run_astar(g)
+        result = run_astar(graph)
     elif config.algorithm == 'astar2':
-        result = run_astar(g, heuristic='man')
+        result = run_astar(graph, heuristic='man')
     elif config.algorithm == 'astar3':
-        result = run_astar(g, actions=graph_search._ACTIONS_2)
+        result = run_astar(graph, actions=graph_search._ACTIONS_2)
     elif config.algorithm == 'graph':
-        result = run_graph(g)
+        result = run_graph(graph)
     else:
         print('Unknown algorithm:', config.algorithm)
         return 1

@@ -369,8 +369,6 @@ def uniform_cost_search(init_state, f, is_goal, actions):
     while len(frontier) > 0:
         # Pop last element
         n_i = frontier.pop()
-        # print(n_i)
-        # print(frontier)
         if n_i.state not in visited:
             visited.append(n_i.state)
             if is_goal(n_i.state):
