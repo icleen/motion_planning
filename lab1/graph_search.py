@@ -308,7 +308,6 @@ def dfs(init_state, f, is_goal, actions):
         traversed until the final goal state
     action_path - the actions taken to transition from the initial state to goal state
     '''
-
     frontier = []
     n0 = SearchNode(init_state, actions)
     visited = []
@@ -325,7 +324,47 @@ def dfs(init_state, f, is_goal, actions):
                     s_prime = f(n_i.state, a)
                     n_prime = SearchNode(s_prime, actions, n_i, a)
                     frontier.append(n_prime)
+    return None
 
+def idfs(init_state, f, is_goal, actions, maxdepth=1000):
+    for depth in range(0, maxdepth):
+        solution = dfs_idfs(init_state, f, is_goal, actions, maxdepth=depth)
+        if solution is not None:
+            return solution
+    return None
+
+def dfs_idfs(init_state, f, is_goal, actions, maxdepth):
+    '''
+    Perform depth first search on a grid map.
+
+    init_state - the intial state on the map
+    f - transition function of the form s_prime = f(s,a)
+    is_goal - function taking as input a state s and returning True if its a goal state
+    actions - set of actions which can be taken by the agent
+
+    returns - ((path, action_path), visited) or None if no path can be found
+    path - a list of tuples. The first element is the initial state followed by all states
+        traversed until the final goal state
+    action_path - the actions taken to transition from the initial state to goal state
+    '''
+    frontier = []
+    n0 = SearchNode(init_state, actions)
+    visited = []
+    frontier.append((n0, 0))
+    while len(frontier) > 0:
+        # Pop last element
+        n_i, depth = frontier.pop()
+        if depth >= maxdepth:
+            continue
+        if (n_i.state, depth) not in visited:
+            visited.append((n_i.state, depth))
+            if is_goal(n_i.state):
+                return (backpath(n_i), [v for (v,d) in visited])
+            else:
+                for a in actions:
+                    s_prime = f(n_i.state, a)
+                    n_prime = SearchNode(s_prime, actions, n_i, a)
+                    frontier.append((n_prime, depth+1))
     return None
 
 def bfs(init_state, f, is_goal, actions):
@@ -358,7 +397,6 @@ def bfs(init_state, f, is_goal, actions):
                     s_prime = f(n_i.state, act)
                     n_prime = SearchNode(s_prime, actions, n_i, act)
                     frontier.append(n_prime)
-
     return None
 
 def uniform_cost_search(init_state, f, is_goal, actions):
