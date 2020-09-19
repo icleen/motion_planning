@@ -12,7 +12,13 @@ _DEBUG = False
 _DEBUG_END = True
 _ACTIONS = ['u','d','l','r']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se']
-acost = {'u':1,'d':1,'l':1,'r':1,'ne':1.5,'nw':1.5,'sw':1.5,'se':1.5}
+_ACTIONS_3 = ['f','rl','rr']
+pose2act = {0:'u',1:'ne',2:'r',3:'se',4:'d',5:'sw',6:'l',7:'nw'}
+acost = {
+  'u':1,'d':1,'l':1,'r':1,
+  'ne':1.5,'nw':1.5,'sw':1.5,'se':1.5,
+  'rl':0.25,'rr':0.25
+}
 _T = 2
 _X = 1
 _Y = 0
@@ -80,7 +86,7 @@ class GridMap:
         return (s[_X] == self.goal[_X] and
                 s[_Y] == self.goal[_Y])
 
-    def transition(self, s, a):
+    def transition(self, s, act):
         '''
         Transition function for the current grid map.
 
@@ -91,33 +97,40 @@ class GridMap:
         If the action is not valid (e.g. moves off the grid or into an obstacle)
         returns the current state.
         '''
+
         new_pos = list(s[:])
+        if act == 'f':
+            act = pose2act[new_pos[_T]]
         # Ensure action stays on the board
-        if a == 'u':
+        if act == 'rl':
+            new_pos[_T] = (new_pos[_T] - 1) % 8
+        elif act == 'rr':
+            new_pos[_T] = (new_pos[_T] + 1) % 8
+        elif act == 'u':
             if s[_Y] > 0:
                 new_pos[_Y] -= 1
-        elif a == 'd':
+        elif act == 'd':
             if s[_Y] < self.rows - 1:
                 new_pos[_Y] += 1
-        elif a == 'l':
+        elif act == 'l':
             if s[_X] > 0:
                 new_pos[_X] -= 1
-        elif a == 'r':
+        elif act == 'r':
             if s[_X] < self.cols - 1:
                 new_pos[_X] += 1
-        elif a == 'nw':
+        elif act == 'nw':
             if s[_Y] > 0 and s[_X] > 0:
                 new_pos[_Y] -= 1
                 new_pos[_X] -= 1
-        elif a == 'ne':
+        elif act == 'ne':
             if s[_Y] > 0 and s[_X] < self.cols - 1:
                 new_pos[_Y] -= 1
                 new_pos[_X] += 1
-        elif a == 'sw':
+        elif act == 'sw':
             if s[_Y] < self.rows - 1 and s[_X] > 0:
                 new_pos[_Y] += 1
                 new_pos[_X] -= 1
-        elif a == 'se':
+        elif act == 'se':
             if s[_Y] < self.rows - 1 and s[_X] < self.cols - 1:
                 new_pos[_Y] += 1
                 new_pos[_X] += 1
@@ -184,7 +197,7 @@ class GridMap:
         ydist = s[_Y] - self.goal[_Y]
         return sqrt(xdist**2 + ydist**2)
 
-    def manhatten_heuristic(self, s):
+    def manhattan_heuristic(self, s):
         '''
         Example of how a heuristic may be provided. This one is admissable, but dumb.
 
@@ -293,6 +306,15 @@ class PriorityQ:
         Return a string of the contents of the list
         '''
         return str(self.l)
+
+def cost(action, state=None):
+    if action == 'f':
+        if (state[_T] % 2) == 0:
+            return 1
+        else:
+            return 1.5
+    else:
+        return acost[action]
 
 def dfs(init_state, f, is_goal, actions):
     '''
@@ -414,7 +436,8 @@ def uniform_cost_search(init_state, f, is_goal, actions):
             else:
                 for act in actions:
                     s_prime = f(n_i.state, act)
-                    n_prime = SearchNode(s_prime, actions, n_i, act, cost=n_i.cost+acost[act])
+                    n_prime = SearchNode( s_prime, actions, n_i, act,
+                      cost=n_i.cost+cost(act, n_i.state) )
                     if n_prime not in frontier or \
                       (n_prime in frontier and \
                        n_prime.cost < frontier.get_cost(n_prime)):
@@ -446,7 +469,8 @@ def a_star_search(init_state, f, is_goal, actions, h):
             else:
                 for a in actions:
                     s_prime = f(n_i.state, a)
-                    n_prime = SearchNode(s_prime, actions, n_i, a, cost=n_i.cost+acost[a])
+                    n_prime = SearchNode( s_prime, actions, n_i, a,
+                      cost=n_i.cost+cost(a, n_i.state) )
                     hcost = n_prime.cost + h(n_prime.state)
                     if n_prime not in frontier or \
                       (n_prime in frontier and \
