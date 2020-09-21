@@ -346,14 +346,7 @@ def dfs(init_state, f, is_goal, actions):
                     s_prime = f(n_i.state, a)
                     n_prime = SearchNode(s_prime, actions, n_i, a)
                     frontier.append(n_prime)
-    return None
-
-def idfs(init_state, f, is_goal, actions, maxdepth=1000):
-    for depth in range(0, maxdepth):
-        solution = dfs_idfs(init_state, f, is_goal, actions, maxdepth=depth)
-        if solution is not None:
-            return solution
-    return None
+    return (([], []), visited)
 
 def dfs_idfs(init_state, f, is_goal, actions, maxdepth):
     '''
@@ -387,7 +380,15 @@ def dfs_idfs(init_state, f, is_goal, actions, maxdepth):
                     s_prime = f(n_i.state, a)
                     n_prime = SearchNode(s_prime, actions, n_i, a)
                     frontier.append((n_prime, depth+1))
-    return None
+    return (None, [v for (v,d) in visited])
+
+def idfs(init_state, f, is_goal, actions, maxdepth=1000):
+    visited = []
+    for depth in range(0, maxdepth):
+        solution, visited = dfs_idfs(init_state, f, is_goal, actions, maxdepth=depth)
+        if solution is not None:
+            return (solution, visited)
+    return (([], []), visited)
 
 def bfs(init_state, f, is_goal, actions):
     '''
@@ -419,7 +420,7 @@ def bfs(init_state, f, is_goal, actions):
                     s_prime = f(n_i.state, act)
                     n_prime = SearchNode(s_prime, actions, n_i, act)
                     frontier.append(n_prime)
-    return None
+    return (([], []), visited)
 
 def uniform_cost_search(init_state, f, is_goal, actions):
     frontier = PriorityQ()
@@ -443,7 +444,7 @@ def uniform_cost_search(init_state, f, is_goal, actions):
                        n_prime.cost < frontier.get_cost(n_prime)):
                         frontier.push(n_prime, n_prime.cost)
 
-    return None
+    return (([], []), visited)
 
 def a_star_search(init_state, f, is_goal, actions, h):
     '''
@@ -477,7 +478,7 @@ def a_star_search(init_state, f, is_goal, actions, h):
                        hcost < frontier.get_cost(n_prime)):
                         frontier.push(n_prime, hcost)
 
-    return None
+    return (([], []), visited)
 
 def backpath(node):
     '''
