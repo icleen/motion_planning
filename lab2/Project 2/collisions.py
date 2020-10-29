@@ -319,7 +319,7 @@ class PolygonEnvironment:
         if show:
             plotter.show()
 
-    def draw_plan(self, plan, planner, dynamic_tree=False, dynamic_plan=True, show=True):
+    def draw_plan(self, plan, planner, dynamic_tree=False, dynamic_plan=True, show=True, save='planed'):
         '''
         Draw the environment with an overlaid plan.
         plan - sequence of configurations to be drawn as plan (not drawn if pass in None)
@@ -354,8 +354,9 @@ class PolygonEnvironment:
                 plotter.plot([e0[0], e1[0]], [e0[1], e1[1]], 'b')
                 plotter.plot([e0[0], e1[0]], [e0[1], e1[1]], 'b.')
                 if dynamic_tree:
-                    plotter.pause(0.001)
+                    plotter.pause(0.0001)
 
+        plotter.savefig(save + '_tree.png')
         # Draw goal
         goal_fk = self.robot.fk(self.goal)
         goal_x = goal_fk[-1]
@@ -384,5 +385,7 @@ class PolygonEnvironment:
                             plotter.plot([r_prev[0], r[0]], [r_prev[1], r[1]], 'g')
                     r_prev = r[:]
                 if dynamic_plan:
-                    plotter.pause(0.01)
+                    plotter.pause(0.001)
             self.robot.draw(plan[-1], color='r')
+
+            plotter.savefig(save + '_plan.png')

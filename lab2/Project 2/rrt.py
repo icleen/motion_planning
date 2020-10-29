@@ -14,7 +14,7 @@ _TRAPPED = 'trapped'
 _ADVANCED = 'advanced'
 _REACHED = 'reached'
 
-def dist(veca, vecb):
+def vdist(veca, vecb):
     return np.sqrt(np.power(veca - vecb, 2).sum())
 
 class TreeNode:
@@ -101,7 +101,12 @@ class RRT:
 
         for k in range(self.K):
             rndst = self.sample()
-            self.extend(rndst)
+            status, node = self.extend(rndst)
+            if self.found_path:
+                return self.T.get_back_path(node)
+        node, dist = self.T.find_nearest(self.goal)
+        if dist < self.epsilon:
+            return self.T.get_back_path(node)
         return None
 
     def build_rrt_connect(self, init, goal):
@@ -115,7 +120,17 @@ class RRT:
 
         # Build tree and search
         self.T = RRTSearchTree(init)
-        # Fill me in!
+
+        for k in range(self.K):
+            rndst = self.sample()
+            status, node = _ADVANCED, None
+            while status == _ADVANCED:
+                status, node = self.extend(rndst, node)
+                if self.found_path:
+                    return self.T.get_back_path(node)
+        node, dist = self.T.find_nearest(self.goal)
+        if dist < self.epsilon:
+            return self.T.get_back_path(node)
         return None
 
     def sample(self):
@@ -127,23 +142,28 @@ class RRT:
             return self.goal
         return self.limits[:,0] + np.random.rand(self.n) * self.ranges
 
-    def extend(self, qnode):
+    def extend(self, qnode, xnear=None):
         '''
         Perform rrt extend operation.
         q - new configuration to extend towards
         '''
-        xnear, dist = self.T.find_nearest(qnode)
+        if xnear is None:
+            xnear, dist = self.T.find_nearest(qnode)
         vec = qnode - xnear.state
         norm = np.sqrt(np.power(vec, 2).sum())
         vec = (vec / norm) * self.epsilon
         xnew = xnear.state + vec
-        if self.in_collision(xnew):
-            self.T.add_node(TreeNode(xnew, xnear))
-            if dist(xnew, qnode) < =self.epsilon:
-                return _REACHED
-            else:
-                return _ADVANCED
-        return _TRAPPED
+        xnew = TreeNode(xnew, xnear)
+        status = _TRAPPED
+        if not self.in_collision(xnew.state):
+            self.T.add_node(xnew, xnear)
+            status = _ADVANCED
+            if vdist(xnew.state, self.goal) <= self.epsilon:
+                status = _REACHED
+                self.found_path = True
+            elif vdist(xnew.state, qnode) <= self.epsilon:
+                status = _REACHED
+        return status, xnew
 
     def fake_in_collision(self, q):
         '''
