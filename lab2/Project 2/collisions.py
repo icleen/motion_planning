@@ -324,7 +324,7 @@ class PolygonEnvironment:
         Draw the environment with an overlaid plan.
         plan - sequence of configurations to be drawn as plan (not drawn if pass in None)
         planner - a planner which has a function of the form
-                  vertices, edges = planner.T.get_states_and_edges()
+                  vertices, edges = planner.get_states_and_edges()
                   if None the search graph is not drawn
         '''
         self.draw_env(show=False)
@@ -344,7 +344,7 @@ class PolygonEnvironment:
         plotter.pause(0.1)
 
         if planner is not None:
-            Qs, edges = planner.T.get_states_and_edges()
+            Qs, edges = planner.get_states_and_edges()
             # Draw tree for each of the robot links
             for i, e in enumerate(edges):
                 X0 = self.robot.fk(e[0])

@@ -66,10 +66,8 @@ def main():
         environment.read_env(config.problem)
         step_length=0.15
 
-    if config.step is not None:
+    if config.step is None:
         config.step = step_length
-    else:
-        config.step = 2
 
 
     dims = len(environment.start)
@@ -102,7 +100,11 @@ def main():
     # print 'plan:', plan
     print('run_time =', run_time)
 
-    debugThing = environment.draw_plan(plan, rrt, True, True, True)
+    save = config.problem.split('/')[-1].split('.')[0]
+    save = '{}_{}_{}'.format( save,
+      'b' if config.bidirection else 'o',
+      'c' if config.connect else 'o' )
+    debugThing = environment.draw_plan(plan, rrt, True, True, True, save=save)
 
 
     if(config.problem == "vrep"):

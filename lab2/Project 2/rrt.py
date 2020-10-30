@@ -60,6 +60,9 @@ class RRTSearchTree:
         path.reverse()
         return path
 
+    def __str__(self):
+        return '[' + ','.join([node.state.__str__() for node in self.nodes]) + ']'
+
 class RRT:
 
     def __init__(self, num_samples, num_dimensions=2, step_length=1, lims=None,
@@ -102,7 +105,7 @@ class RRT:
         for k in range(self.K):
             rndst = self.sample()
             status, node = self.extend(rndst)
-            if self.found_path:
+            if vdist(node.state, self.goal) <= self.epsilon:
                 return self.T.get_back_path(node)
         node, dist = self.T.find_nearest(self.goal)
         if dist < self.epsilon:
@@ -126,20 +129,20 @@ class RRT:
             status, node = _ADVANCED, None
             while status == _ADVANCED:
                 status, node = self.extend(rndst, node)
-                if self.found_path:
+                if vdist(node.state, self.goal) <= self.epsilon:
                     return self.T.get_back_path(node)
         node, dist = self.T.find_nearest(self.goal)
         if dist < self.epsilon:
             return self.T.get_back_path(node)
         return None
 
-    def sample(self):
+    def sample(self, goal=None):
         '''
         Sample a new configuration and return
         '''
         # Return goal with connect_prob probability
         if np.random.random() < self.connect_prob:
-            return self.goal
+            return goal if goal is not None else self.goal
         return self.limits[:,0] + np.random.rand(self.n) * self.ranges
 
     def extend(self, qnode, xnear=None):
@@ -152,16 +155,14 @@ class RRT:
         vec = qnode - xnear.state
         norm = np.sqrt(np.power(vec, 2).sum())
         vec = (vec / norm) * self.epsilon
-        xnew = xnear.state + vec
-        xnew = TreeNode(xnew, xnear)
+        vec = xnear.state + vec
+        xnew = None
         status = _TRAPPED
-        if not self.in_collision(xnew.state):
+        if not self.in_collision(vec):
+            xnew = TreeNode(vec, xnear)
             self.T.add_node(xnew, xnear)
             status = _ADVANCED
-            if vdist(xnew.state, self.goal) <= self.epsilon:
-                status = _REACHED
-                self.found_path = True
-            elif vdist(xnew.state, qnode) <= self.epsilon:
+            if vdist(xnew.state, qnode) <= self.epsilon:
                 status = _REACHED
         return status, xnew
 
@@ -170,6 +171,93 @@ class RRT:
         We never collide with this function!
         '''
         return False
+
+    def get_states_and_edges(self):
+        return self.T.get_states_and_edges()
+
+
+class BidirectionalRRT(RRT):
+    """docstring for BidirectionalRRT."""
+
+    def __init__( self, num_samples, num_dimensions=2, step_length=1,
+      lims=None, connect_prob=0.05, collision_func=None ):
+        super(BidirectionalRRT, self).__init__(
+          num_samples, num_dimensions, step_length, lims,
+          connect_prob, collision_func )
+        # same setup
+        self.Ts = None
+        self.Tg = None
+
+    def build_rrt(self, init, goal):
+        '''
+        Build the rrt from init to goal
+        Returns path to goal or None
+        '''
+        self.goal = np.array(goal)
+        self.init = np.array(init)
+        self.found_path = False
+
+        # Build tree and search
+        self.Ts = [RRTSearchTree(init), RRTSearchTree(goal)]
+
+        for k in range(self.K):
+            ti = k%2
+            self.T = self.Ts[ti]
+            rndst = self.sample(self.init if ti else self.goal)
+            status, node0 = self.extend(rndst)
+            if status != _TRAPPED:
+                self.T = self.Ts[ti-1]
+                status, node1 = self.extend(node0.state)
+                if status == _REACHED:
+                    if ti == 1:
+                        path0 = self.Ts[0].get_back_path(node1)
+                        path1 = self.Ts[1].get_back_path(node0)
+                    else:
+                        path0 = self.Ts[0].get_back_path(node0)
+                        path1 = self.Ts[1].get_back_path(node1)
+                    path1.reverse()
+                    return path0 + path1[1:]
+        return None
+
+    def build_rrt_connect(self, init, goal):
+        '''
+        Build the rrt connect from init to goal
+        Returns path to goal or None
+        '''
+        self.goal = np.array(goal)
+        self.init = np.array(init)
+        self.found_path = False
+
+        # Build tree and search
+        self.Ts = [RRTSearchTree(init), RRTSearchTree(goal)]
+
+        for k in range(self.K):
+            ti = k%2
+            self.T = self.Ts[ti]
+            rndst = self.sample(self.init if ti else self.goal)
+            status, node0 = self.extend(rndst)
+            if status != _TRAPPED:
+                self.T = self.Ts[ti-1]
+                status, node1 = _ADVANCED, None
+                while status == _ADVANCED:
+                    status, node1 = self.extend(node0.state, node1)
+                    if status == _REACHED:
+                        if ti == 1:
+                            path0 = self.Ts[0].get_back_path(node1)
+                            path1 = self.Ts[1].get_back_path(node0)
+                        else:
+                            path0 = self.Ts[0].get_back_path(node0)
+                            path1 = self.Ts[1].get_back_path(node1)
+                        path1.reverse()
+                        return path0 + path1[1:]
+        return None
+
+    def get_states_and_edges(self):
+        states0, edges0 = self.Ts[0].get_states_and_edges()
+        states1, edges1 = self.Ts[1].get_states_and_edges()
+        states = np.concatenate((states0, states1), 0)
+        return states, edges0+edges1
+
 
 def test_rrt_env(num_samples=500, step_length=2, env='./env0.txt', connect=False):
     '''
