@@ -7,6 +7,7 @@ import matplotlib.pyplot as plotter
 from math import pi
 from collisions import PolygonEnvironment
 import time
+from graph_search import a_star_search
 
 _DEBUG = False
 
@@ -17,6 +18,19 @@ _REACHED = 'reached'
 def vdist(veca, vecb):
     return np.sqrt(np.power(veca - vecb, 2).sum())
 
+def get_vec(pt1, pt2, epsilon):
+    vec = pt2 - pt1
+    norm = np.sqrt(np.power(vec, 2).sum())
+    vec = (vec / norm) * epsilon
+    vec = pt1 + vec
+    return vec
+
+def get_steps(pt1, pt2, epsilon):
+    vec = pt2 - pt1
+    norm = np.sqrt(np.power(vec, 2).sum())
+    normed = (vec / norm) * epsilon
+    nsteps = int(norm/epsilon)
+    return [pt1 + step*normed for step in range(nsteps)]
 
 class PRM(object):
     """docstring for PRM."""
@@ -28,8 +42,9 @@ class PRM(object):
         self.Ts = None
         self.Tg = None
 
-        self.K = num_samples
-        self.n = num_dimensions
+        self.samps = num_samples
+        self.dims = num_dimensions
+        self.kn = 4
         self.epsilon = step_length
         self.connect_prob = connect_prob
 
@@ -48,72 +63,96 @@ class PRM(object):
         self.ranges = self.limits[:,1] - self.limits[:,0]
         self.found_path = False
 
-    def build_rrt(self, init, goal):
+        self.build_prm()
+
+    def sample(self):
+        rand = np.random.rand(self.samps,self.dims) * self.ranges \
+          + self.limits[:,0]
+        colis = [pi for pi, pt in enumerate(rand) if self.in_collision(pt)]
+        while len(colis) > 0:
+            rand[colis] = np.random.rand(len(colis),self.dims) * self.ranges \
+              + self.limits[:,0]
+            colis = [pi for pi, pt in enumerate(rand) if self.in_collision(pt)]
+        return rand
+
+    def nearest_k(self, pt, pts, k):
+        dists = np.sqrt(np.power(pts-pt, 2).sum(1))
+        return dists.argsort()[:k]
+
+    def connectable(self, pt, pk):
+        '''use line connection to see if you can connect 2 points'''
+        lpts = get_steps(pt, pk, self.epsilon)
+        for lp in lpts:
+            if self.in_collision(lp):
+                return False
+        return True
+
+    def build_prm(self):
         '''
-        Build the rrt from init to goal
-        Returns path to goal or None
+        Build the prm map
         '''
-        self.goal = np.array(goal)
-        self.init = np.array(init)
-        self.found_path = False
+        pts = self.sample()
+        self.states = pts
+        self.map = np.zeros((pts.shape[0], pts.shape[0]))
 
-        # Build tree and search
-        self.Ts = [RRTSearchTree(init), RRTSearchTree(goal)]
+        for pi, pt in enumerate(pts):
+            ptks = self.nearest_k(pt, pts[np.r_[:pi, pi+1:len(pts)]], self.kn)
+            ptks[ptks>=pi] += 1
+            for pk in ptks:
+                if pk == pi:
+                    import pdb; pdb.set_trace()
+                if self.connectable(pt, pts[pk]):
+                    self.map[pi, pk] = 1
 
-        for k in range(self.K):
-            ti = k%2
-            self.T = self.Ts[ti]
-            rndst = self.sample(self.init if ti else self.goal)
-            status, node0 = self.extend(rndst)
-            if status != _TRAPPED:
-                self.T = self.Ts[ti-1]
-                status, node1 = self.extend(node0.state)
-                if status == _REACHED:
-                    if ti == 1:
-                        path0 = self.Ts[0].get_back_path(node1)
-                        path1 = self.Ts[1].get_back_path(node0)
-                    else:
-                        path0 = self.Ts[0].get_back_path(node0)
-                        path1 = self.Ts[1].get_back_path(node1)
-                    path1.reverse()
-                    return path0 + path1[1:]
-        return None
-
-    def build_rrt_connect(self, init, goal):
+    def plan(self, init, goal):
         '''
         Build the rrt connect from init to goal
         Returns path to goal or None
         '''
-        self.goal = np.array(goal)
         self.init = np.array(init)
-        self.found_path = False
+        self.goal = np.array(goal)
 
-        # Build tree and search
-        self.Ts = [RRTSearchTree(init), RRTSearchTree(goal)]
+        inear = 0
+        ptks = self.nearest_k(self.init, self.states, self.kn)
+        for pk in ptks:
+            if self.connectable(self.init, self.states[pk]):
+                inear = pk
+                break
+        gnear = 0
+        ptks = self.nearest_k(self.goal, self.states, self.kn)
+        for pk in ptks:
+            if self.connectable(self.goal, self.states[pk]):
+                gnear = pk
+                break
 
-        for k in range(self.K):
-            ti = k%2
-            self.T = self.Ts[ti]
-            rndst = self.sample(self.init if ti else self.goal)
-            status, node0 = self.extend(rndst)
-            if status != _TRAPPED:
-                self.T = self.Ts[ti-1]
-                status, node1 = _ADVANCED, None
-                while status == _ADVANCED:
-                    status, node1 = self.extend(node0.state, node1)
-                    if status == _REACHED:
-                        if ti == 1:
-                            path0 = self.Ts[0].get_back_path(node1)
-                            path1 = self.Ts[1].get_back_path(node0)
-                        else:
-                            path0 = self.Ts[0].get_back_path(node0)
-                            path1 = self.Ts[1].get_back_path(node1)
-                        path1.reverse()
-                        return path0 + path1[1:]
-        return None
+        def transition(state, action):
+            if action > self.kn:
+                import pdb; pdb.set_trace()
+            return np.where(self.map[state]==1)[0][action]
+
+        def is_goal(state):
+            return state == gnear
+
+        def cost(action, state):
+            ind = transition(state, action)
+            return vdist(self.states[state], self.states[ind])
+
+        def heur(state):
+            return vdist(self.states[state], self.states[gnear])
+
+        # ((path, actions), visited)
+        path, visited = a_star_search(inear, transition, is_goal, np.arange(self.kn), cost, heur)
+        path, actions = path
+        if len(path) == 0:
+            return None
+        return [self.init] + [self.states[pi] for pi in path] + [self.goal]
 
     def get_states_and_edges(self):
-        states0, edges0 = self.Ts[0].get_states_and_edges()
-        states1, edges1 = self.Ts[1].get_states_and_edges()
-        states = np.concatenate((states0, states1), 0)
-        return states, edges0+edges1
+        edges = np.where(self.map == 1)
+        edges = [ (self.states[p1], self.states[p2])
+          for p1, p2 in zip(edges[0], edges[1]) ]
+        return self.states, edges
+
+
+if __name__ == '__main__':
+    PRM()

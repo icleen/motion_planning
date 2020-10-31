@@ -12,7 +12,6 @@ from collisions import PolygonEnvironment
 import time
 import vrepWrapper
 from rrt import *
-from prm import *
 
 
 def get_args():
@@ -25,9 +24,6 @@ def get_args():
     parser.add_argument( '-b', '--bidirection', type=bool,
       nargs='?', default=False, const=True,
       help='bidirectional RRT or not' )
-    parser.add_argument( '-prm', '--prm', type=bool,
-      nargs='?', default=False, const=True,
-      help='use prm' )
     parser.add_argument( '-k', '--num_samples', type=int,
       nargs='?', default=5000,
       help='number of samples' )
@@ -78,16 +74,7 @@ def main():
     print(config)
     start_time = time.time()
 
-    if config.prm:
-        if config.num_samples == 5000:
-            config.num_samples = 1000
-        rrt = PRM( config.num_samples,
-                   dims,
-                   config.step,
-                   lims=environment.lims,
-                   connect_prob=config.connect_prob,
-                   collision_func=environment.test_collisions )
-    elif config.bidirection:
+    if config.bidirection:
         rrt = BidirectionalRRT(config.num_samples,
                                dims,
                                config.step,
@@ -101,10 +88,7 @@ def main():
                   lims=environment.lims,
                   connect_prob=config.connect_prob,
                   collision_func=environment.test_collisions)
-
-    if config.prm:
-        plan = rrt.plan(environment.start, environment.goal)
-    elif config.connect:
+    if config.connect:
         plan = rrt.build_rrt_connect(environment.start, environment.goal)
     else:
         plan = rrt.build_rrt(environment.start, environment.goal)
@@ -120,7 +104,7 @@ def main():
     save = '{}_{}_{}'.format( save,
       'b' if config.bidirection else 'o',
       'c' if config.connect else 'o' )
-    debugThing = environment.draw_plan(plan, rrt, False, True, True, save=save)
+    debugThing = environment.draw_plan(plan, rrt, True, True, True, save=save)
 
 
     if(config.problem == "vrep"):
