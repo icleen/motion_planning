@@ -22,10 +22,16 @@ class ImageCollector:
         rospy.init_node('pose_reader')
 
         self.data_path = data_path
-        os.makedirs(self.data_path, exist_ok=True)
         self.imgfolder = osp.join(self.data_path, 'images')
-        os.makedirs(self.imgfolder, exist_ok=True)
         self.img_paths_file = osp.join(self.data_path, 'img_paths_file.txt')
+        try:
+            os.mkdir(self.data_path)
+        except Exception as e:
+            pass
+        try:
+            os.mkdir(self.imgfolder)
+        except Exception as e:
+            pass
 
         topic = '/camera/depth/camera_info'
         rospy.Subscriber(topic, CameraInfo, self.get_depth_cam_info)
@@ -33,10 +39,17 @@ class ImageCollector:
         rospy.Subscriber(topic, PointCloud2, self.get_map_pts)
         topic = '/orb_slam2_mono/pose'
         rospy.Subscriber(topic, PoseStamped, self.get_pose)
+        topic = '/octomap_point_cloud_centers'
+        rospy.Subscriber(topic, PointCloud2, self.get_octomap)
 
+        self.numpy_path = osp.join(self.data_path, 'pose.npy')
         self.image_paths = []
         self.mapts = None
         self.pose = None
+        if osp.exists(self.numpy_path):
+            self.poses = np.load(self.numpy_path).tolist()
+        else:
+            self.poses = []
         self.depth_cam_info = None
 
         self.save_depth_cam_info()
@@ -78,27 +91,50 @@ class ImageCollector:
             print('exception:', e)
             rospy.logerr(e)
 
+    def get_octomap(self, octomap):
+        self.octomap = None
+        try:
+            self.octomap = octomap
+        except Exception as e:
+            rospy.logerr(e)
+
     def save(self):
         if self.mapts is not None:
 
             mapts = get_xyz_points(pointcloud2_to_array(self.mapts))
+            print('pts:', len(mapts))
             numpy_path = osp.join(self.data_path, 'mapts.npy')
-            np.save(numpy_path, mapts, fix_imports=True)
-            import pdb; pdb.set_trace()
+            np.save(numpy_path, mapts)
+
+        if self.octomap is not None:
+
+            octomap = get_xyz_points(pointcloud2_to_array(self.octomap))
+            print('octo:', len(octomap))
+            numpy_path = osp.join(self.data_path, 'octomap.npy')
+            np.save(numpy_path, octomap)
 
         if self.pose is not None:
 
             pose = self.pose
-            import pdb; pdb.set_trace()
-            numpy_path = osp.join(self.data_path, 'mapts.npy')
-            np.save(numpy_path, mapts, fix_imports=True)
+            pose = np.array([
+              pose.pose.position.x,
+              pose.pose.position.y,
+              pose.pose.position.z,
+              pose.pose.orientation.x,
+              pose.pose.orientation.y,
+              pose.pose.orientation.z,
+              pose.pose.orientation.w
+            ])
+            print('pose:', pose)
+            self.poses.append(pose)
+            np.save(self.numpy_path, np.array(self.poses))
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
       "svdir", nargs='?', type=str,
-      default="/home/iain/workspace/motion_planning/slam_plan/slam_data",
+      default="/home/iclee141/workspace/motion_plan/motion_planning/slam_plan/slam_data",
       help="path to save directory"
     )
     # parser.add_argument(
@@ -114,7 +150,11 @@ def main():
     config = parser.parse_args()
 
     data_path = config.svdir
-    os.makedirs(data_path, exist_ok=True)
+    try:
+        os.mkdir(data_path)
+    except Exception as e:
+        # print(e)
+        pass
     print('save path: {}'.format(data_path))
 
     img_col = ImageCollector(data_path)
