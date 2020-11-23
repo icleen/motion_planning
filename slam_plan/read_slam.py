@@ -71,11 +71,8 @@ class ImageCollector:
             rospy.logerr(e)
 
     def get_pose(self, pose):
-        print('pose')
         self.pose = None
         try:
-            if pose is None:
-                print('none')
             self.pose = pose
         except Exception as e:
             print('exception:', e)
@@ -87,6 +84,7 @@ class ImageCollector:
             mapts = get_xyz_points(pointcloud2_to_array(self.mapts))
             numpy_path = osp.join(self.data_path, 'mapts.npy')
             np.save(numpy_path, mapts, fix_imports=True)
+            import pdb; pdb.set_trace()
 
         if self.pose is not None:
 
