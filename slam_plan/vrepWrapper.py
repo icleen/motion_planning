@@ -23,13 +23,6 @@ class vrepWrapper:
     def __init__(self,shm = True,sa=None):
         vrep.simxFinish(-1)
         self.clientID = vrep.simxStart('127.0.0.1', 19997, True, True, 5000, 5)
-        self.start = np.array([0.0] * 7)
-        self.goal = np.array([3.14/2] * 7)
-        pi = np.pi
-        self.lims = np.array([[-pi, pi], [-pi, pi], [-pi, pi],
-                              [-pi, pi], [-pi, pi], [-pi, pi],
-                              [-pi, pi]])
-
 
         if self.clientID != -1:
             print("Successfully connected to remote API server.")
@@ -39,14 +32,18 @@ class vrepWrapper:
         else:
             print("Failed connecting to remote API server")
 
-        joint_names = ["LBR4p_joint{}".format(i) for i in range(1, 8)]
-        self. joint_handles = [ vrep.simxGetObjectHandle(self.clientID, joint, vrep.simx_opmode_blocking)[1]
-        for joint in joint_names]
+        self.robot_handle = vrep.simxGetObjectHandle(
+          self.clientID, 'youBot', vrep.simx_opmode_blocking
+        )
 
         self.sa=sa
 
         self.setCollision(shm)
         self.shm = shm
+
+        self.start = np.array([0.0] * 7)
+        self.goal = np.array([3.14/2] * 7)
+        self.lims = np.array([[-pi, pi], [-pi, pi]])
 
         import pdb; pdb.set_trace()
 
