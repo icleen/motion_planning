@@ -32,7 +32,8 @@ catkin build
 source devel/setup.bash
 ```
 
-Then run with:
+Then run with (mono, rgbd):
 ```
 roslaunch orb_slam2_ros orb_slam2_d435_mono.launch
+roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch
 ```

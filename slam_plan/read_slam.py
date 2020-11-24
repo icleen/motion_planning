@@ -129,6 +129,8 @@ class ImageCollector:
             self.poses.append(pose)
             np.save(self.numpy_path, np.array(self.poses))
 
+        plot_data(mapts, pose, pose)
+
 
 def main():
     parser = argparse.ArgumentParser()
