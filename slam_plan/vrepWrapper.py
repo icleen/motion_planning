@@ -11,7 +11,7 @@ import numpy as np
 import os
 
 try:
-    from vrepfiles.vrepfiles import vrep
+    from vrepfiles import vrep
 except:
     print(
         "Import of vrep failed. Make sure the 'vrep.py' file is in this directory."
