@@ -159,25 +159,7 @@ class vrepWrapper:
 
 def main():
 
-    vrep.simxFinish(-1)
-    self.clientID = vrep.simxStart('127.0.0.1', 19997, True, True, 5000, 5)
-    self.start = np.array([0.0] * 7)
-    self.goal = np.array([3.14/2] * 7)
-    pi = np.pi
-    self.lims = np.array([[-pi, pi], [-pi, pi], [-pi, pi],
-                          [-pi, pi], [-pi, pi], [-pi, pi],
-                          [-pi, pi]])
-
-
-    if self.clientID != -1:
-        print("Successfully connected to remote API server.")
-        #vrep.simxSynchronous(self.clientID, True)
-        vrep.simxStartSimulation(self.clientID, vrep.simx_opmode_blocking)
-
-    else:
-        print("Failed connecting to remote API server")
-
-    # vrapper = vrepWrapper(False, None)
+    vrapper = vrepWrapper(False, None)
 
 
 if __name__ == '__main__':
