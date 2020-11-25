@@ -52,7 +52,7 @@ class VrepWrapper:
           '80cmHighWall200cm8', '80cmHighWall200cm7', '80cmHighWall200cm6',
           '80cmHighWall50cm3', '80cmHighWall50cm2', '80cmHighWall50cm1',
           '80cmHighWall200cm5', '80cmHighWall200cm0', '80cmHighWall100cm0',
-          #'80cmHighWall500cm0'
+          '80cmHighWall50cm0'
         ]
         walls2 = [
           '80cmHighWall200cm2', '80cmHighWall100cm1', '80cmHighWall50cm4',
@@ -100,9 +100,22 @@ class VrepWrapper:
           vrep.simx_opmode_blocking
         )[1] for wallh in wall_handles])
         points = []
+        # wpos0 = wall_pos[1]
+        # wpos1 = wall_pos[0]
+        # vec = wpos1 - wpos0
+        # vec = (vec / (steps+1))
+        # for step in range(1,steps+1):
+        #     points.append( wpos0+(vec*step) )
         for wi in range(len(wall_pos)-1):
             wpos0 = wall_pos[wi]
             wpos1 = wall_pos[wi+1]
+            vec = wpos1 - wpos0
+            # norm = np.sqrt(np.power(vec, 2).sum())
+            vec = (vec / (steps+1))
+            for step in range(1,steps+1):
+                points.append( wpos0+(vec*step) )
+            wpos0 = wall_pos[wi+1]
+            wpos1 = wall_pos[wi]
             vec = wpos1 - wpos0
             # norm = np.sqrt(np.power(vec, 2).sum())
             vec = (vec / (steps+1))
@@ -115,10 +128,23 @@ class VrepWrapper:
           vrep.simx_opmode_blocking
         )[1] for wallh in wall_handles2])
         points = []
+        wpos0 = wall_pos[-1]
+        wpos1 = wall_pos[0]
+        vec = wpos1 - wpos0
+        vec = (vec / (steps+1))
+        for step in range(1,steps+1):
+            points.append( wpos0+(vec*step) )
         for wi in range(len(wall_pos)-1):
             wpos0 = wall_pos[wi]
             wpos1 = wall_pos[wi+1]
             vec = wpos1 - wpos0
+            vec = (vec / (steps+1))
+            for step in range(1,steps+1):
+                points.append( wpos0+(vec*step) )
+            wpos0 = wall_pos[wi+1]
+            wpos1 = wall_pos[wi]
+            vec = wpos1 - wpos0
+            # norm = np.sqrt(np.power(vec, 2).sum())
             vec = (vec / (steps+1))
             for step in range(1,steps+1):
                 points.append( wpos0+(vec*step) )
