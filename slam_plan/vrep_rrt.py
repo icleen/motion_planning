@@ -10,7 +10,7 @@ from vrepWrapper import VrepWrapper
 
 def main():
     environment = VrepWrapper(False, None)
-    num_samples = 1000
+    num_samples = 5000
     step_size = 0.1
 
     rrt = RRT(num_samples,
@@ -20,7 +20,7 @@ def main():
               connect_prob=0.5,
               collision_func=environment.test_collisions)
 
-    plan = rrt.build_rrt(environment.start, environment.goal)
+    plan = rrt.build_rrt_connect(environment.start, environment.goal)
 
     environment.draw_plan(plan, rrt.get_states_and_edges())
 
