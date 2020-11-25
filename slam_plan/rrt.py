@@ -104,6 +104,8 @@ class RRT:
         for k in range(self.K):
             rndst = self.sample()
             status, node = self.extend(rndst)
+            if status == _TRAPPED:
+                continue
             if vdist(node.state, self.goal) <= self.epsilon:
                 return self.T.get_back_path(node)
         node, dist = self.T.find_nearest(self.goal)

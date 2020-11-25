@@ -9,6 +9,7 @@ import sys
 import time
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
 try:
     from vrepfiles import vrep
@@ -19,7 +20,7 @@ except:
     sys.exit(1)
 
 
-class vrepWrapper:
+class VrepWrapper:
     def __init__(self,shm = True,sa=None):
         vrep.simxFinish(-1)
         self.clientID = vrep.simxStart('127.0.0.1', 19997, True, True, 5000, 5)
@@ -62,9 +63,10 @@ class vrepWrapper:
         mins = wall_pos.min(0)
         maxs = wall_pos.max(0)
         # print('mins:', mins, 'maxs:', maxs)
-        self.lims = np.array([[mins[0]-1, maxs[0]+1], [mins[1]-1, maxs[1]+1]])
+        expans = 0.5
+        self.lims = np.array([[mins[0]-expans, maxs[0]+expans], [mins[1]-expans, maxs[1]+expans]])
         # import pdb; pdb.set_trace()
-        self.lims = np.array([[-7.26916552,  4.59999681], [-4.49999833,  7.65804672]])
+        # self.lims = np.array([[-7.26916552,  4.59999681], [-4.49999833,  7.65804672]])
         self.wall_poses = wall_pos
 
         self.sa=sa
@@ -163,44 +165,39 @@ class vrepWrapper:
         self.__init__(self.shm,self.sa)
 
     def test_collisions(self,state):
+        expanded = np.reshape(np.array(state),(-1,2))
+        formatted = np.zeros((expanded.shape[0], 3))
+        formatted[:,:2] = expanded[:]
+        formatted[:,2] += 0.4
+        return self.checkCollission(formatted)
+        # formatted = np.reshape(np.array(state),(-1,7))
+        # collides,fk = self.checkCollission(formatted)
+        # return np.sum(collides)>0
 
-        formatted = np.reshape(np.array(state),(-1,7))
-        collides,fk = self.checkCollission(formatted)
-        return np.sum(collides)>0
+    def draw_plan(self, path, states):
 
-    def draw_plan(self, plan, planner, dynamic_tree=False, dynamic_plan=True, show=True):
-        if(self.shm):
-           self.vrepReset()
-        #dynamic_tree, dynamic_plan and show are all dummy values and do not function
-        planLines = np.zeros((len(plan),6))
+        Qs, edges = states
+        print('states:', len(Qs))
+        # Draw tree for each of the robot links
+        for i, e in enumerate(edges):
+            e0 = e[0]
+            e1 = e[1]
+            plt.plot([e0[0], e1[0]], [e0[1], e1[1]], 'b', zorder=-1)
+            plt.plot([e0[0], e1[0]], [e0[1], e1[1]], 'b.', zorder=-1)
 
-        collisions,fk = self.checkCollission(np.array(plan))
-        if(np.sum(collisions) > 0):
-            print('plan failed checker')
-        for i in range(len(plan)):
-            if(i >0):
-                planLines[i-1,3:] = fk[i,:]
-            planLines[i,:3] = fk[i,:]
-        self.addLine(planLines[:-1],1)
+        if path is not None:
+            path = np.array(path)
+            plt.plot(path[:,0], path[:,1], color='purple')
 
-        if planner is not None:
-            print('drawing tree')
-            Qs, edges = planner.T.get_states_and_edges()
-            totalNodes = np.reshape(np.array(edges),(-1,7))
-            collisions,fk = self.checkCollission(totalNodes)
+        plt.scatter(self.wall_poses[:,0], self.wall_poses[:,1])
+        plt.scatter([self.start[0]], [self.start[1]], label='start', color='r')
+        plt.scatter([self.goal[0]], [self.goal[1]], label='goal', color='g')
+        plt.savefig('test.png')
 
-            if(np.sum(collisions) > 0):
-                print('some nodes are in collision in tree')
-            self.addLine(np.reshape(fk,(-1,6)))
-            self.addPoint(fk)
-#        return fk
-        col,fk = self.checkCollission(np.reshape(planner.goal,(-1,7)))
-        self.addPoint(np.reshape(fk,(-1,3)),1)
-        self.runTrajectory(plan)
 
 def main():
 
-    vrapper = vrepWrapper(False, None)
+    vrapper = VrepWrapper(False, None)
     print('successes:')
     print('collided:', vrapper.checkCollission([0.0, 0.0, 0.4]))
     print('collided:', vrapper.checkCollission([-1.95, 4.35, 0.4]))
