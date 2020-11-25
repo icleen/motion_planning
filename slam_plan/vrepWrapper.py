@@ -119,9 +119,7 @@ class VrepWrapper:
             wpos0 = wall_pos[wi]
             wpos1 = wall_pos[wi+1]
             vec = wpos1 - wpos0
-            norm = np.sqrt(np.power(vec, 2).sum())
-            vec = (vec / norm) * stepsize
-            npos = wpos0+vec
+            vec = (vec / (steps+1))
             for step in range(1,steps+1):
                 points.append( wpos0+(vec*step) )
         final_walls = final_walls + wall_pos.tolist() + points
@@ -152,7 +150,7 @@ class VrepWrapper:
         self.start = np.array( robot_pos )[:2]
         self.goal = np.array( goal_poss[-1] )[:2]
 
-        self.threshold = 0.15
+        self.threshold = 0.1
 
         plt.scatter(self.wall_poses[:,0], self.wall_poses[:,1])
         plt.scatter([self.start[0]], [self.start[1]], label='start', color='r')
