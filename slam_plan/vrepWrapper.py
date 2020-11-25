@@ -36,11 +36,9 @@ class VrepWrapper:
         self.robot_handle = vrep.simxGetObjectHandle(
           self.clientID, 'youBot', vrep.simx_opmode_blocking
         )[1]
-        print('robot:', self.robot_handle)
         self.goal_handles = [vrep.simxGetObjectHandle(
           self.clientID, 'ConcretBlock#{}'.format(i), vrep.simx_opmode_blocking
-        )[1] for i in range(3) ]
-        print('goals:', self.goal_handles)
+        )[1] for i in range(3)]
 
         walls = [
           '80cmHighWall50cm', '80cmHighWall100cm', '80cmHighWall200cm',
@@ -54,7 +52,7 @@ class VrepWrapper:
           '80cmHighWall200cm8', '80cmHighWall200cm7', '80cmHighWall200cm6',
           '80cmHighWall50cm3', '80cmHighWall50cm2', '80cmHighWall50cm1',
           '80cmHighWall200cm5', '80cmHighWall200cm0', '80cmHighWall100cm0',
-          '80cmHighWall500cm0'
+          #'80cmHighWall500cm0'
         ]
         walls2 = [
           '80cmHighWall200cm2', '80cmHighWall100cm1', '80cmHighWall50cm4',
@@ -94,8 +92,8 @@ class VrepWrapper:
           vrep.simx_opmode_blocking
         )[1] for wallh in wall_handles3]
 
-        steps = 5
-        stepsize = 1 / (steps+1)
+        steps = 8
+        stepsize = 1.0 / (steps)
 
         wall_pos = np.array([vrep.simxGetObjectPosition(
           self.clientID, wallh, -1,
@@ -106,15 +104,11 @@ class VrepWrapper:
             wpos0 = wall_pos[wi]
             wpos1 = wall_pos[wi+1]
             vec = wpos1 - wpos0
-            norm = np.sqrt(np.power(vec, 2).sum())
-            vec = (vec / norm) * stepsize
-            npos = wpos0+vec
-            points.append(npos)
-            for step in range(steps):
-                npos += vec
-                points.append(npos)
+            # norm = np.sqrt(np.power(vec, 2).sum())
+            vec = (vec / (steps+1))
+            for step in range(1,steps+1):
+                points.append( wpos0+(vec*step) )
         final_walls = final_walls + wall_pos.tolist() + points
-        print('final_walls', len(final_walls))
 
         wall_pos = np.array([vrep.simxGetObjectPosition(
           self.clientID, wallh, -1,
@@ -128,20 +122,17 @@ class VrepWrapper:
             norm = np.sqrt(np.power(vec, 2).sum())
             vec = (vec / norm) * stepsize
             npos = wpos0+vec
-            points.append(npos)
-            for step in range(steps):
-                npos += vec
-                points.append(npos)
+            for step in range(1,steps+1):
+                points.append( wpos0+(vec*step) )
         final_walls = final_walls + wall_pos.tolist() + points
-        print('final_walls', len(final_walls))
 
         final_walls = np.array(final_walls)
         mins = final_walls.min(0)
         maxs = final_walls.max(0)
         # print('mins:', mins, 'maxs:', maxs)
         expans = 0.5
-        self.lims = np.array([[mins[0]-expans, maxs[0]+expans], [mins[1]-expans, maxs[1]+expans]])
-        # self.lims = np.array([[-7.26916552,  4.59999681], [-4.49999833,  7.65804672]])
+        # self.lims = np.array([[mins[0]-expans, maxs[0]+expans], [mins[1]-expans, maxs[1]+expans]])
+        self.lims = np.array([[-6.0,  4.0], [-4.0,  5.0]])
         self.wall_poses = final_walls
 
         self.sa=sa
@@ -159,14 +150,15 @@ class VrepWrapper:
         # print('goal pos:', goal_poss)
 
         self.start = np.array( robot_pos )[:2]
-        self.goal = np.array( goal_poss[0] )[:2]
+        self.goal = np.array( goal_poss[-1] )[:2]
 
-        self.threshold = 0.25
+        self.threshold = 0.15
 
         plt.scatter(self.wall_poses[:,0], self.wall_poses[:,1])
         plt.scatter([self.start[0]], [self.start[1]], label='start', color='r')
         plt.scatter([self.goal[0]], [self.goal[1]], label='goal', color='g')
         plt.savefig('testmap.png')
+        print('showing testmap')
 
 
     def checkCollission(self,states):
