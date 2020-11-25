@@ -34,27 +34,52 @@ class vrepWrapper:
 
         self.robot_handle = vrep.simxGetObjectHandle(
           self.clientID, 'youBot', vrep.simx_opmode_blocking
-        )
+        )[1]
+        print('robot:', self.robot_handle)
+        self.goal_handles = [vrep.simxGetObjectHandle(
+          self.clientID, 'ConcretBlock#{}'.format(i), vrep.simx_opmode_blocking
+        )[1] for i in range(3) ]
+        print('goals:', self.goal_handles)
+
+        walls = []
+        walls += [vrep.simxGetObjectHandle(
+          self.clientID, '80cmHighWall100cm{}'.format(i),
+          vrep.simx_opmode_blocking
+        )[1] for i in range(9)]
+        walls += [vrep.simxGetObjectHandle(
+          self.clientID, '80cmHighWall200cm{}'.format(i),
+          vrep.simx_opmode_blocking
+        )[1] for i in range(21)]
+        walls += [vrep.simxGetObjectHandle(
+          self.clientID, '80cmHighWall50cm{}'.format(i),
+          vrep.simx_opmode_blocking
+        )[1] for i in range(12)]
+        wall_pos = np.array([vrep.simxGetObjectPosition(
+          self.clientID, wallh, -1,
+          vrep.simx_opmode_blocking
+        )[1] for wallh in walls])
+        mins = wall_pos.min(0)
+        maxs = wall_pos.max(0)
+        # print('mins:', mins, 'maxs:', maxs)
+        self.lims = np.array([[mins[0]-1, maxs[0]+1], [mins[1]-1, maxs[1]+1]])
 
         self.sa=sa
-
-        self.setCollision(shm)
         self.shm = shm
 
-        self.start = np.array([0.0] * 7)
-        self.goal = np.array([3.14/2] * 7)
-        self.lims = np.array([[-pi, pi], [-pi, pi]])
+        robot_pos = vrep.simxGetObjectPosition(
+          self.clientID, self.robot_handle, -1,
+          vrep.simx_opmode_blocking
+        )[1]
+        goal_poss = [vrep.simxGetObjectPosition(
+          self.clientID, goalh, -1,
+          vrep.simx_opmode_blocking
+        )[1] for goalh in self.goal_handles]
+        # print('robot pos:', robot_pos)
+        # print('goal pos:', goal_poss)
 
-        import pdb; pdb.set_trace()
+        self.start = np.array( robot_pos )[:2]
+        self.goal = np.array( goal_poss[0] )[:2]
 
-
-    def setCollision(self,shm):
-        if(shm == True):
-            self.array = self.sa.attach("shm://test5")
-            import pdb; pdb.set_trace()
-            self.test_collisions = self.fastCollision
-        else:
-            self.test_collisions = self.slowCollisions
 
     def runTrajectory(self,angles):
         for angle in angles:
@@ -63,13 +88,16 @@ class vrepWrapper:
                                                 vrep.simx_opmode_blocking)
             vrep.simxSynchronousTrigger(self.clientID)
             time.sleep(0.01)
+
     def checkCollission(self,states):
         num_states = len(states)
         single_dim_states = np.reshape(states,-1)
 
-        [res, retInts, retFloats, retStrings, retBuffer] = vrep.simxCallScriptFunction(self.clientID, "LBR4p",
-                                                                 vrep.sim_scripttype_childscript, 'collision_run',[num_states],single_dim_states,
-                                                                 'Hello world!', 'blah', vrep.simx_opmode_blocking)
+        [res, retInts, retFloats, retStrings, retBuffer] = vrep.simxCallScriptFunction(
+          self.clientID, "LBR4p", vrep.sim_scripttype_childscript, 'collision_run',
+          [num_states], single_dim_states, 'Hello world!', 'blah',
+          vrep.simx_opmode_blocking
+        )
         if( res&2 == 2):
             print('deeper')
             new = np.array_split(states,2)
@@ -108,21 +136,11 @@ class vrepWrapper:
         self.vrepStop()
         self.__init__(self.shm,self.sa)
 
-    def slowCollisions(self,state):
+    def test_collisions(self,state):
 
         formatted = np.reshape(np.array(state),(-1,7))
         collides,fk = self.checkCollission(formatted)
         return np.sum(collides)>0
-
-    def fastCollision(self,state):
-
-        self.array[1:8] = state
-        self.array[0] = 1
-        while(self.array[0] == 1):
-            #print(self.array[0:8])
-            #print(self.array[8:])
-            pass
-        return(self.array[8]==1.0)
 
     def draw_plan(self, plan, planner, dynamic_tree=False, dynamic_plan=True, show=True):
         if(self.shm):
