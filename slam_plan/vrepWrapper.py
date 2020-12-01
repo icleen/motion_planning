@@ -21,7 +21,7 @@ except:
 
 
 class VrepWrapper:
-    def __init__(self,shm = True,sa=None):
+    def __init__(self,shm = True,sa=None, goalpos=2):
         vrep.simxFinish(-1)
         self.clientID = vrep.simxStart('127.0.0.1', 19997, True, True, 5000, 5)
 
@@ -174,7 +174,7 @@ class VrepWrapper:
         # print('goal pos:', goal_poss)
 
         self.start = np.array( robot_pos )[:2]
-        self.goal = np.array( goal_poss[-1] )[:2]
+        self.goal = np.array( goal_poss[goalpos] )[:2]
 
         self.threshold = 0.1
 
