@@ -1,0 +1,15 @@
+
+*.png
+*.PNG
+*.pdf
+*.pyc
+*/__py__/
+*/VREP/
+*.tex
+*.zip
+*.gz
+*.log
+*/ros/
+*.cls
+*/vrepfiles/
+
