@@ -26,10 +26,11 @@ class GridMap:
     _T = 2
     _X = 1
     _Y = 0
-    _GOAL_COLOR = 0.75
+    _GOAL_COLOR = 1.5
     _INIT_COLOR = 0.25
-    _PATH_COLOR_RANGE = 0.5
-    _VISITED_COLOR = 0.9
+    _PATH_COLOR_RANGE = _GOAL_COLOR-_INIT_COLOR
+    _VISITED_COLOR = 1.75
+    _WALL_COLOR = 2.0
 
     def __init__(self, map_path=None):
         '''
@@ -67,11 +68,12 @@ class GridMap:
             for c in range(self.cols):
                 if lines[r][c] == 'x':
                     self.occupancy_grid[r][c] = True
-                self.states.append( (r, c) )
-                if lines[r][c] == 'g':
-                    self.goal = (r,c)
-                elif lines[r][c] == 'i':
-                    self.init_pos = (r,c,0)
+                else:
+                    self.states.append( (r, c) )
+                    if lines[r][c] == 'g':
+                        self.goal = (r,c)
+                    elif lines[r][c] == 'i':
+                        self.init_pos = (r,c,0)
 
     def get_states(self):
         return self.states
@@ -154,7 +156,7 @@ class GridMap:
         filename - relative path to file where image will be saved
         '''
         plotter.clf()
-        display_grid = np.array(self.occupancy_grid, dtype=np.float32)
+        display_grid = np.array(self.occupancy_grid, dtype=np.float32)*self._WALL_COLOR
 
         # Color all visited nodes if requested
         for v in visited:
@@ -168,7 +170,7 @@ class GridMap:
         display_grid[self.goal] = self._GOAL_COLOR
 
         if (path[-1][0], path[-1][1]) == self.goal:
-            print('finished')
+            # print('finished')
             # print('finished:', (path[-1][0], path[-1][1]), ', goal:', self.goal)
             plotter.title('finished')
 

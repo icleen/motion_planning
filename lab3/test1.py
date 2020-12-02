@@ -12,14 +12,12 @@ def run_1(map, num=0, outpath='outputs/'):
         # (path, action_path), visited = result
         action_path = result[0][1]
 
-        map.simode = True
         state = map.init_pos
         path = [state]
         for act in action_path:
-            state = map.transition(state, act)
+            state = map.transition(state, act, simode=True)
             path.append( state )
-        map.display_map(path, path, outpath + 'map{}_test{}.png'.format(num, test))
-    map.simode = False
+        map.display_map(path, [], outpath + 'map{}_test{}.png'.format(num, test))
 
 
 map0 = MDPMap('map0.txt', MDPMap._ACTIONS1)
