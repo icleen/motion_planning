@@ -55,13 +55,14 @@ class MDPMap(GridMap):
     # _PATH_COLOR = 0.25
     # _INIT_COLOR = 0.0
 
-    def __init__(self, map_path=None, actions=None, goalval=10, stateval=0, discount=0.8):
+    def __init__(self, map_path=None, actions=None, goalval=10, stateval=0, cornerval=None, discount=0.8):
         super(MDPMap, self).__init__(map_path)
         self.actions = actions
         if actions is None:
             self.actions = _ACTIONS1
         self.goalval = goalval
         self.stateval = stateval
+        self.cornerval = cornerval
         self.discount = discount
         self.threshold = 0.1
 
@@ -80,6 +81,10 @@ class MDPMap(GridMap):
     def value(self, state, action, nstate):
         if self.is_goal(nstate):
             return self.goalval
+        elif self.is_corner(nstate):
+            if self.cornerval is None:
+                return self.stateval
+            return self.cornerval
         return self.stateval
 
     def get_actions(self):

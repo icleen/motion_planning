@@ -78,6 +78,11 @@ class GridMap:
     def get_states(self):
         return self.states
 
+    def is_corner(self, s):
+        xcorn = (s[0] == 0) or (s[0] == (self.rows-1))
+        ycorn = (s[1] == 0) or (s[1] == (self.cols-1))
+        return (xcorn and ycorn)
+
     def is_goal(self,s):
         '''
         Test if a specifid state is the goal state

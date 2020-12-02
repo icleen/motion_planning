@@ -1,4 +1,6 @@
 
+import os
+
 from value_iteration import value_iter
 from graph_map import GridMap
 from mdp_map import MDPMap
@@ -10,6 +12,7 @@ def run_2(map, outpath='outputs/'):
     map.display_policy(policy, outpath + 'policy.png')
     map.display_map(path, [], outpath + 'actions{}.png'.format(len(path)))
 
+os.makedirs('outputs2/', exist_ok=True)
 
 map0 = MDPMap('map0.txt', MDPMap._ACTIONS1)
 map1 = MDPMap('map1.txt', MDPMap._ACTIONS1)
@@ -58,6 +61,8 @@ run_2(map2, 'outputs2/mdp4_map2_')
 print('test 2.5')
 map0.actions = MDPMap._ACTIONS1
 map1.actions = MDPMap._ACTIONS1
+map0.discount = 0.8
+map1.discount = 0.8
 map0.goalval = 1.0
 map1.goalval = 1.0
 run_2(map0, 'outputs2/mdp5_map0_gv1_')

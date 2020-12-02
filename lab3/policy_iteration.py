@@ -7,9 +7,10 @@ from utils import *
 from graph_map import GridMap
 from value_iteration import policy_path
 
-def policy_iteration(map, threshold=0.1, max_iterations=100):
+def policy_iteration(map, policy=None, threshold=0.1, max_iterations=100):
     discount = map.discount
-    policy = defaultdict(lambda: 'u')
+    if policy is None:
+        policy = defaultdict(lambda: 'u')
     values = defaultdict(lambda: 0)
     iters = 0
     mult_iters = 0

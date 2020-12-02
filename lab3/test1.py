@@ -1,4 +1,6 @@
 
+import os
+
 from discrete_planners import bfs
 from graph_map import GridMap
 from mdp_map import MDPMap
@@ -19,6 +21,7 @@ def run_1(map, num=0, outpath='outputs/'):
             path.append( state )
         map.display_map(path, [], outpath + 'map{}_test{}.png'.format(num, test))
 
+os.makedirs('outputs1/', exist_ok=True)
 
 map0 = MDPMap('map0.txt', MDPMap._ACTIONS1)
 map1 = MDPMap('map1.txt', MDPMap._ACTIONS1)
