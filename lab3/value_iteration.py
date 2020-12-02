@@ -6,8 +6,8 @@ from collections import defaultdict
 from utils import *
 from graph_map import GridMap
 
-def value_iter(map, discount=0.8, threshold=0.1, max_iterations=1000):
-
+def value_iter(map, threshold=0.1, max_iterations=1000):
+    discount = map.discount
     values = defaultdict(int)
     for iter in range(max_iterations):
         newvalues = defaultdict(int)
@@ -29,11 +29,12 @@ def value_iter(map, discount=0.8, threshold=0.1, max_iterations=1000):
         values = newvalues
         if diff < threshold:
             break
-    policy = value_policy(map, values, discount=0.8, threshold=0.1, max_iterations=1000)
+    policy = value_policy(map, values, threshold, max_iterations)
     path = policy_path(map, policy)
     return values, policy, path, iter
 
-def value_policy(map, values, discount=0.8, threshold=0.1, max_iterations=1000):
+def value_policy(map, values, threshold=0.1, max_iterations=1000):
+    discount = map.discount
     policy = {}
     for state in map.get_states():
         best_aval = float("-inf")

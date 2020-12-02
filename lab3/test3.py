@@ -22,3 +22,8 @@ run_3(map1, 'outputs3/mdp1_map1_iu_')
 print('test 3.2')
 run_3(map0, 'outputs3/mdp2_map0_id_')
 run_3(map1, 'outputs3/mdp2_map1_id_')
+
+
+print('test 3.3')
+run_3(map0, 'outputs3/mdp3_map0_id_')
+run_3(map1, 'outputs3/mdp3_map1_id_')

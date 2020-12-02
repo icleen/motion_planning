@@ -40,17 +40,29 @@ class MDPMap(GridMap):
       'se':[(0.7, 'se'), (0.1, 'd'), (0.1, 'r'), (0.05, 'sw'), (0.05, 'ne')],
     }
 
+    _ACTION_COLORS = {
+      'u':.25,
+      'd':0.4285714285714286,
+      'l':0.6071428571428572,
+      'r':0.7857142857142857,
+      'nw':0.9642857142857143,
+      'ne':1.1428571428571428,
+      'sw':1.3214285714285714,
+      'se':1.5,
+    }
+
     # _GOAL_COLOR = 1.5
     # _PATH_COLOR = 0.25
     # _INIT_COLOR = 0.0
 
-    def __init__(self, map_path=None, actions=None, goalval=10, stateval=0):
+    def __init__(self, map_path=None, actions=None, goalval=10, stateval=0, discount=0.8):
         super(MDPMap, self).__init__(map_path)
         self.actions = actions
         if actions is None:
             self.actions = _ACTIONS1
         self.goalval = goalval
         self.stateval = stateval
+        self.discount = discount
 
     def transition(self, state, action, simode=False):
         outstates = []
@@ -115,23 +127,14 @@ class MDPMap(GridMap):
         plotter.clf()
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)*self._WALL_COLOR
 
-        actvals = {}
-        for ai, act in enumerate(self.actions):
-            aval = self._INIT_COLOR + self._PATH_COLOR_RANGE*(ai+1)/len(self.actions)
-            actvals[act] = aval
-
-        # Color all visited nodes if requested
+        actvals = self._ACTION_COLORS
         for state in policy:
             action = policy[state]
             display_grid[state[0],state[1]] = actvals[action]
         display_grid[self.goal] = self._GOAL_COLOR
-        # print('grid:', display_grid)
 
-        # Plot display grid for visualization
         imgplot = plotter.imshow(display_grid)
-        # Set interpolation to nearest to create sharp boundaries
         imgplot.set_interpolation('nearest')
-        # Set color map to diverging style for contrast
         imgplot.set_cmap('Spectral')
         if filename is not None:
             plotter.savefig(filename)
@@ -140,16 +143,32 @@ class MDPMap(GridMap):
 
 
 def main():
-    map = MDPMap('map1.txt')
-    states = map.transition(map.init_pos, 'u')
-    print('init:', map.init_pos)
-    print('states:', states)
+    # map = MDPMap('map1.txt')
+    # states = map.transition(map.init_pos, 'u')
+    # print('init:', map.init_pos)
+    # print('states:', states)
+    #
+    # map.simode = True
+    # print('samples:')
+    # for _ in range(5):
+    #     state = map.transition(map.init_pos, 'u')
+    #     print('state:', state)
 
-    map.simode = True
-    print('samples:')
-    for _ in range(5):
-        state = map.transition(map.init_pos, 'u')
-        print('state:', state)
+    actvals = MDPMap._ACTION_COLORS
+    actionmap = np.zeros((3,3), dtype=np.float32)
+    actionmap[1,1] = MDPMap._WALL_COLOR
+    actionmap[1,0] = actvals['l']
+    actionmap[1,2] = actvals['r']
+    actionmap[0,1] = actvals['u']
+    actionmap[2,1] = actvals['d']
+    actionmap[0,2] = actvals['ne']
+    actionmap[0,0] = actvals['nw']
+    actionmap[2,2] = actvals['se']
+    actionmap[2,0] = actvals['sw']
+    imgplot = plotter.imshow(actionmap)
+    imgplot.set_interpolation('nearest')
+    imgplot.set_cmap('Spectral')
+    plotter.savefig('action_color_map.png')
 
 if __name__ == '__main__':
     main()
