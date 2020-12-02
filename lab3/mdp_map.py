@@ -63,6 +63,7 @@ class MDPMap(GridMap):
         self.goalval = goalval
         self.stateval = stateval
         self.discount = discount
+        self.threshold = 0.1
 
     def transition(self, state, action, simode=False):
         outstates = []

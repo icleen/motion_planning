@@ -11,19 +11,18 @@ def run_3(map, outpath='outputs/'):
     map.display_map(path, [], outpath + 'actions{}.png'.format(len(path)))
 
 
-map0 = MDPMap('map0.txt', MDPMap._ACTIONS1)
-map1 = MDPMap('map1.txt', MDPMap._ACTIONS1)
-map2 = MDPMap('map2.txt', MDPMap._ACTIONS3)
+map0 = MDPMap('map0.txt', MDPMap._ACTIONS1, discount=0.9)
+map1 = MDPMap('map1.txt', MDPMap._ACTIONS1, discount=0.9)
+map2 = MDPMap('map2.txt', MDPMap._ACTIONS3, discount=0.9)
 
 print('test 3.1')
 run_3(map0, 'outputs3/mdp1_map0_iu_')
 run_3(map1, 'outputs3/mdp1_map1_iu_')
 
-print('test 3.2')
-run_3(map0, 'outputs3/mdp2_map0_id_')
-run_3(map1, 'outputs3/mdp2_map1_id_')
-
-
-print('test 3.3')
-run_3(map0, 'outputs3/mdp3_map0_id_')
-run_3(map1, 'outputs3/mdp3_map1_id_')
+# print('test 3.2')
+# run_3(map0, 'outputs3/mdp2_map0_id_')
+# run_3(map1, 'outputs3/mdp2_map1_id_')
+#
+# print('test 3.3')
+# run_3(map0, 'outputs3/mdp3_map0_id_')
+# run_3(map1, 'outputs3/mdp3_map1_id_')

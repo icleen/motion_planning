@@ -12,17 +12,17 @@ def policy_iteration(map, threshold=0.1, max_iterations=100):
     policy = defaultdict(lambda: 'u')
     values = defaultdict(lambda: 0)
     iters = 0
+    mult_iters = 0
     changes = 1
     for iters in range(max_iterations):
         values, viters = policy_evaluation(map, policy, values, threshold, max_iterations)
+        mult_iters += viters
         policy, changes = policy_improvement(map, policy, values)
         iters += 1
-        if iters%10 == 0:
-            import pdb; pdb.set_trace()
-            print('iters:', iters)
         if changes < 1:
             break
     path = policy_path(map, policy)
+    print('summed iters:', mult_iters)
     return values, policy, path, iters
 
 def policy_evaluation(map, policy, values, threshold=0.1, max_iterations=100):

@@ -19,41 +19,41 @@ print('test 2.1')
 run_2(map0, 'outputs2/mdp1_map0_l08_')
 run_2(map1, 'outputs2/mdp1_map1_l08_')
 
-# print('test 2.2')
-# map0.discount = 0.9
-# map1.discount = 0.9
-# run_2(map0, 'outputs2/mdp2_map0_l09_')
-# run_2(map1, 'outputs2/mdp2_map1_l09_')
-# map0.discount = 0.5
-# map1.discount = 0.5
-# run_2(map0, 'outputs2/mdp2_map0_l05_')
-# run_2(map1, 'outputs2/mdp2_map1_l05_')
-# map0.discount = 0.2
-# map1.discount = 0.2
-# run_2(map0, 'outputs2/mdp2_map0_l02_')
-# run_2(map1, 'outputs2/mdp2_map1_l02_')
-# map0.discount = 0.0
-# map1.discount = 0.0
-# run_2(map0, 'outputs2/mdp2_map0_l00_')
-# run_2(map1, 'outputs2/mdp2_map1_l00_')
+print('test 2.2')
+map0.discount = 0.9
+map1.discount = 0.9
+run_2(map0, 'outputs2/mdp2_map0_l09_')
+run_2(map1, 'outputs2/mdp2_map1_l09_')
+map0.discount = 0.5
+map1.discount = 0.5
+run_2(map0, 'outputs2/mdp2_map0_l05_')
+run_2(map1, 'outputs2/mdp2_map1_l05_')
+map0.discount = 0.2
+map1.discount = 0.2
+run_2(map0, 'outputs2/mdp2_map0_l02_')
+run_2(map1, 'outputs2/mdp2_map1_l02_')
+map0.discount = 0.0
+map1.discount = 0.0
+run_2(map0, 'outputs2/mdp2_map0_l00_')
+run_2(map1, 'outputs2/mdp2_map1_l00_')
 
 print('test 2.3')
 map0.actions = MDPMap._ACTIONS3
 map1.actions = MDPMap._ACTIONS3
-map0.discount = 0.8
-map1.discount = 0.8
-map2.discount = 0.8
-run_2(map0, 'outputs2/mdp3_map0_l08_')
-run_2(map1, 'outputs2/mdp3_map1_l08_')
-run_2(map2, 'outputs2/mdp3_map2_l08_')
+map0.discount = 0.9
+map1.discount = 0.9
+map2.discount = 0.9
+run_2(map0, 'outputs2/mdp3_map0_')
+run_2(map1, 'outputs2/mdp3_map1_')
+run_2(map2, 'outputs2/mdp3_map2_')
 
 print('test 2.4')
 map0.actions = MDPMap._ACTIONS4
 map1.actions = MDPMap._ACTIONS4
 map2.actions = MDPMap._ACTIONS4
-run_2(map0, 'outputs2/mdp4_map0_l08_')
-run_2(map1, 'outputs2/mdp4_map1_l08_')
-run_2(map2, 'outputs2/mdp4_map2_l08_')
+run_2(map0, 'outputs2/mdp4_map0_')
+run_2(map1, 'outputs2/mdp4_map1_')
+run_2(map2, 'outputs2/mdp4_map2_')
 
 print('test 2.5')
 map0.actions = MDPMap._ACTIONS1

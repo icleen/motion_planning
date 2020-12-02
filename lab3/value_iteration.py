@@ -54,8 +54,12 @@ def value_policy(map, values, threshold=0.1, max_iterations=1000):
 def policy_path(map, policy):
     state = (map.init_pos[0], map.init_pos[1])
     path = [state]
+    iter = 0
     while not map.is_goal(state):
         action = policy[state]
         state = map.transition(state, action, simode=True)
         path.append(state)
+        iter += 1
+        if iter > 1000:
+            break
     return path
