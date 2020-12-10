@@ -283,7 +283,7 @@ class VrepWrapper:
 
         if path is not None:
             path = np.array(path)
-            plt.plot(path[:,0], path[:,1], color='purple')
+            plt.plot(path[:,0], path[:,1], color='red', linewidth=2)
 
         plt.scatter(self.wall_poses[:,0], self.wall_poses[:,1])
         plt.scatter([self.start[0]], [self.start[1]], label='start', color='r')

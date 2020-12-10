@@ -35,7 +35,7 @@ class PRM(object):
     """docstring for PRM."""
 
     def __init__( self, num_samples, num_dimensions=2, step_length=1,
-      lims=None, connect_prob=0.05, collision_func=None, connectn=4 ):
+      lims=None, connect_prob=0.05, collision_func=None, connectn=8 ):
         super(PRM, self).__init__()
         # same setup
         self.Ts = None
